@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Freecam Menu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap');
+
+  :root{
+    --fg: #ffffff;
+    --muted: rgba(255,255,255,.70);
+    --hover-shadow: 0 18px 60px rgba(0,0,0,.45);
+    --outline: #136e33; /* dark green */
+  }
+
+  html,body{
+    margin:0; height:100%;
+    background:transparent; overflow:hidden; user-select:none;
+    font-family:'Inter',system-ui,Segoe UI,Roboto,Arial; font-weight:700; color:var(--fg);
+  }
+
+  /* Position LOWER on screen (bottom-center) */
+  .wrap{
+    position:fixed; left:50%; bottom:12%;
+    transform:translateX(-50%);
+    display:flex; align-items:center; justify-content:center; width:100%;
+    pointer-events:auto; /* capture wheel in this area */
+  }
+
+  .menu{
+    position:relative;
+    padding:22px 38px 26px;
+    border-radius:10px;
+    background:rgba(0,0,0,.22);
+    transition: box-shadow .25s ease, outline-offset .25s ease, transform .25s ease;
+    outline:2px dashed transparent; outline-offset:10px;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,.25));
+  }
+  .menu:hover{
+    box-shadow: var(--hover-shadow);
+    outline-color: var(--outline);
+    transform: translateY(-2px);
+  }
+
+  /* smooth fade/slide in */
+  .menu.animate-in{
+    opacity:0; transform:translate(-0% , 6px);
+    animation: in .45s cubic-bezier(.16,.84,.44,1) forwards;
+  }
+  @keyframes in{ to{ opacity:1; transform:translate(0,0);} }
+
+  .title{
+    text-align:center; margin-bottom:10px;
+    color:var(--muted); font-size:16px; letter-spacing:.5px;
+  }
+
+  .list{ position:relative; }
+
+  .item{
+    font-size:22px; line-height:36px; letter-spacing:.3px;
+    text-align:center; opacity:.85;
+    text-shadow:0 2px 12px rgba(0,0,0,.45);
+    transition: opacity .18s ease, transform .18s ease;
+    padding:2px 12px; margin:2px 0;
+  }
+  .item span { opacity:.85; }  /* parentheses text */
+  .item.active{
+    opacity:1; transform:scale(1.03);
+  }
+
+  /* Gliding selector “bar” behind active item */
+  .selector{
+    position:absolute; left:50%; transform:translateX(-50%);
+    width:340px; height:36px; border-radius:6px;
+    background: rgba(255,255,255,.10);
+    box-shadow: 0 6px 22px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.12);
+    pointer-events:none; z-index:-1;
+  }
+
+  .hint{
+    margin-top:12px; text-align:center; font-size:12px;
+    color:var(--muted); letter-spacing:1px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="menu animate-in" id="menu">
+      <div class="title">— Freecam —</div>
+      <div class="list" id="list">
+        <div class="selector" id="selector"></div>
+
+        <div class="item active">- Look-Around -</div>
+        <div class="item">Teleport</div>
+        <div class="item">Action <span>( M82v2 )</span></div>
+        <div class="item">Car Shooter <span>( Cargoplane )</span></div>
+        <div class="item">Spawn Angry Ped</div>
+        <div class="item">Delete Entity</div>
+        <div class="item">Flip Vehicle</div>
+        <div class="item">Unlock Vehicle</div>
+      </div>
+      <div class="hint">Scroll • Select</div>
+    </div>
+  </div>
+
+<script>
+  // ---------- Smooth “glide” selector ----------
+  const items = [...document.querySelectorAll('.item')];
+  const selector = document.getElementById('selector');
+  const list = document.getElementById('list');
+  let idx = 0;
+
+  // LERP to make selector glide
+  let targetTop = 0, currentTop = 0;
+  function placeSelectorInstant() {
+    const r = items[idx].getBoundingClientRect();
+    const parentTop = list.getBoundingClientRect().top + window.scrollY;
+    currentTop = targetTop = (r.top + window.scrollY - parentTop) + r.height * 0.02;
+    selector.style.top = currentTop + 'px';
+  }
+
+  function glide() {
+    currentTop += (targetTop - currentTop) * 0.18; // easing
+    selector.style.top = currentTop.toFixed(2) + 'px';
+    requestAnimationFrame(glide);
+  }
+
+  function setActive(newIdx){
+    items[idx].classList.remove('active');
+    idx = (newIdx + items.length) % items.length;
+    items[idx].classList.add('active');
+
+    const r = items[idx].getBoundingClientRect();
+    const parentTop = list.getBoundingClientRect().top + window.scrollY;
+    targetTop = (r.top + window.scrollY - parentTop) + r.height * 0.02;
+  }
+
+  // Init
+  window.addEventListener('load', () => {
+    placeSelectorInstant();
+    requestAnimationFrame(glide);
+  });
+
+  // ---------- Mouse wheel navigation (smooth) ----------
+  // We only listen while pointer is over the panel to avoid stealing scroll globally.
+  const menu = document.getElementById('menu');
+  menu.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    if (e.deltaY > 0) setActive(idx + 1);
+    else setActive(idx - 1);
+  }, { passive:false });
+
+  // Optional: arrow keys (useful if DUI focuses the page)
+  window.addEventListener('keydown', (e)=>{
+    if (e.key === 'ArrowDown') setActive(idx + 1);
+    else if (e.key === 'ArrowUp') setActive(idx - 1);
+  });
+</script>
+</body>
+</html>
