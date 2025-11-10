@@ -1,168 +1,126 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Freecam HUD</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Freecam Menu</title>
 <style>
-  :root{
-    --bg: rgba(8,10,14,0.45);
-    --glass: rgba(255,255,255,0.04);
-    --accent: #19a0ff;
-    --muted: #9aa5b1;
-    --fw: 500;
-    --radius: 12px;
-    --blur: 8px;
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap');
 
-  html,body { height:100%; margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
-  body{
-    display:flex; align-items:flex-end; justify-content:center;
+  html,body{
+    margin:0;
+    height:100%;
     background:transparent;
-    pointer-events:none; /* keep DUI non-interactive by default; Lua can toggle if needed */
+    overflow:hidden;
+    user-select:none;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    color:#fff;
   }
 
-  .hud {
-    width:520px; max-width:92vw;
-    margin:28px;
-    padding:14px;
-    background:linear-gradient(180deg,var(--bg), rgba(10,12,16,0.3));
-    border-radius:var(--radius);
-    box-shadow:0 6px 30px rgba(2,6,10,0.6), inset 0 1px rgba(255,255,255,0.02);
-    backdrop-filter: blur(var(--blur));
-    display:flex; gap:12px; align-items:center;
-    transform: translateY(18px);
-    animation: slideUp .55s cubic-bezier(.16,.84,.2,1) both;
+  body {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    letter-spacing:0.3px;
   }
 
-  @keyframes slideUp { from { opacity:0; transform: translateY(30px) scale(.995); } to { opacity:1; transform: translateY(0) scale(1); } }
-
-  .left {
-    width:100px; min-width:100px; height:86px;
-    border-radius:10px; background:var(--glass);
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column; padding:8px; pointer-events:auto;
-  }
-  .compass {
-    width:64px; height:64px; border-radius:8px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-    display:flex; align-items:center; justify-content:center;
-    color:var(--accent); font-weight:700; font-size:13px;
-    box-shadow: 0 4px 14px rgba(25,160,255,0.06), inset 0 -2px rgba(0,0,0,0.12);
-    transform-origin:center;
-    transition: transform .12s linear;
+  .menu {
+    opacity:0;
+    transform:translateY(20px);
+    animation:fadeInUp .6s cubic-bezier(.16,.84,.44,1) forwards;
   }
 
-  .meta { flex:1; display:flex; gap:8px; align-items:center; justify-content:space-between; }
-  .col { display:flex; flex-direction:column; gap:6px; pointer-events:auto; }
-  .label { color:var(--muted); font-size:12px; letter-spacing:.4px; }
-  .value { color:#e9f2ff; font-weight:700; font-size:15px; }
+  @keyframes fadeInUp {
+    to { opacity:1; transform:translateY(0); }
+  }
 
-  .controls {
-    width:120px; display:flex; flex-direction:column; gap:6px; align-items:flex-end;
+  .menu-item {
+    font-size:20px;
+    margin:8px 0;
+    transition:all .18s ease;
+    opacity:0.7;
+    text-shadow:0 0 8px rgba(0,0,0,0.5);
   }
-  .btn {
-    pointer-events:auto;
-    padding:6px 10px; border-radius:999px; font-weight:600; font-size:13px;
-    background:transparent; border:1px solid rgba(255,255,255,0.06); color:#dbeafc;
-    backdrop-filter: blur(4px);
-    transition: all .14s ease;
-  }
-  .btn.primary {
-    background: linear-gradient(90deg,var(--accent), #4dd0ff);
-    color:#02111a; border: none; box-shadow: 0 6px 18px rgba(25,160,255,0.12);
-  }
-  .btn:active { transform: translateY(1px) scale(.998); }
 
-  /* subtle floating particles */
-  .particles {
-    position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:1;
+  .menu-item.active {
+    color:#ff4a4a;
+    font-size:22px;
+    opacity:1;
+    text-shadow:0 0 12px rgba(255,74,74,0.7);
+    transform:scale(1.04);
   }
-  .particle { position:absolute; width:6px; height:6px; border-radius:50%; background:rgba(25,160,255,0.08); filter: blur(2px); animation: float 6s linear infinite; }
-  @keyframes float { 0%{ transform: translateY(0) scale(.8) } 50%{ transform: translateY(-18px) scale(1) } 100%{ transform: translateY(0) scale(.8) } }
 
-  /* tiny footer hint */
-  .hint { font-size:11px; color:var(--muted); text-align:center; margin-top:8px; }
+  .menu-item.secondary {
+    color:#ff7070;
+  }
+
+  .menu-item span {
+    color:#ff4a4a;
+  }
+
+  .hint {
+    margin-top:40px;
+    font-size:13px;
+    color:rgba(255,255,255,0.5);
+    letter-spacing:1px;
+  }
+
+  /* smooth scroll / selector effect */
+  .selector {
+    position:absolute;
+    width:280px;
+    height:34px;
+    border-radius:6px;
+    background:rgba(255,255,255,0.06);
+    box-shadow:0 0 8px rgba(255,255,255,0.1);
+    left:50%;
+    transform:translateX(-50%);
+    transition:all .2s ease;
+    z-index:-1;
+  }
 </style>
 </head>
 <body>
-  <div class="particles" aria-hidden="true"></div>
-
-  <div class="hud" role="presentation" aria-hidden="true">
-    <div class="left">
-      <div id="compass" class="compass">N</div>
-      <div style="font-size:11px;color:var(--muted); margin-top:6px;">Freecam</div>
-    </div>
-
-    <div class="meta">
-      <div class="col">
-        <div class="label">Position</div>
-        <div id="pos" class="value">x: 0.00 y: 0.00 z: 0.00</div>
-      </div>
-
-      <div class="col" style="align-items:flex-start;">
-        <div class="label">Rotation</div>
-        <div id="rot" class="value">rx: 0.0 ry: 0.0 rz: 0.0</div>
-      </div>
-    </div>
-
-    <div class="controls">
-      <button id="toggle" class="btn primary">Close Freecam</button>
-      <button id="center" class="btn">Center</button>
-    </div>
+  <div class="menu">
+    <div id="selector" class="selector"></div>
+    <div class="menu-item active">- Look-Around -</div>
+    <div class="menu-item">Teleport</div>
+    <div class="menu-item secondary">Action <span>( M82v2 )</span></div>
+    <div class="menu-item secondary">Car Shooter <span>( Cargoplane )</span></div>
+    <div class="menu-item">Spawn Angry Ped</div>
+    <div class="menu-item">Delete Entity</div>
+    <div class="menu-item">Flip Vehicle</div>
+    <div class="menu-item">Unlock Vehicle</div>
+    <div class="hint">Scroll • Select</div>
   </div>
 
 <script>
-  // small animated particles
-  (function placeParticles(){
-    const container = document.querySelector('.particles');
-    const count = 10;
-    for(let i=0;i<count;i++){
-      const p = document.createElement('div');
-      p.className='particle';
-      p.style.left = Math.random()*100 + 'vw';
-      p.style.top = Math.random()*100 + 'vh';
-      p.style.opacity = (0.06 + Math.random()*0.15).toFixed(2);
-      p.style.width = (3 + Math.random()*8) + 'px';
-      p.style.height = p.style.width;
-      p.style.animationDelay = (Math.random()*5) + 's';
-      p.style.transform = `translateY(${Math.random()*10}px)`;
-      container.appendChild(p);
-    }
-  })();
+  const items = [...document.querySelectorAll('.menu-item')];
+  const selector = document.getElementById('selector');
+  let index = 0;
 
-  // HUD API for Lua (if you want to post messages into the overlay)
-  window.updateFreecamHUD = function(data){
-    // expected data: {x,y,z,rx,ry,rz,heading}
-    if(!data) return;
-    document.getElementById('pos').textContent = `x: ${data.x.toFixed(2)} y: ${data.y.toFixed(2)} z: ${data.z.toFixed(2)}`;
-    document.getElementById('rot').textContent = `rx: ${data.rx.toFixed(1)} ry: ${data.ry.toFixed(1)} rz: ${data.rz.toFixed(1)}`;
-    const compass = document.getElementById('compass');
-    if(data.heading !== undefined){
-      // simple compass: rotate the element
-      compass.style.transform = `rotate(${data.heading}deg)`;
-    }
-  };
+  function updateActive(newIndex){
+    items[index].classList.remove('active');
+    index = (newIndex + items.length) % items.length;
+    items[index].classList.add('active');
+    const rect = items[index].getBoundingClientRect();
+    selector.style.top = (rect.top + window.scrollY - 4) + 'px';
+  }
 
-  // button hooks - these post messages to the parent (if supported)
-  document.getElementById('toggle').addEventListener('click', () => {
-    // Post a message to parent - FiveM DUI may not forward this automatically,
-    // but this keeps us NUI-compatible if you later switch to NUI.
-    try{ window.top.postMessage({ type: 'freecam:close' }, '*'); }catch(e){}
+  // Initialize selector position
+  window.onload = () => {
+    const rect = items[index].getBoundingClientRect();
+    selector.style.top = (rect.top + window.scrollY - 4) + 'px';
+  }
+
+  // Scroll / key simulation (for visual testing)
+  window.addEventListener('wheel', (e)=>{
+    if(e.deltaY>0) updateActive(index+1);
+    else updateActive(index-1);
   });
-  document.getElementById('center').addEventListener('click', () => {
-    try{ window.top.postMessage({ type: 'freecam:center' }, '*'); }catch(e){}
-  });
-
-  // friendly animation loop to pulse compass slightly
-  (function compassPulse(){
-    const el = document.getElementById('compass');
-    let t=0;
-    setInterval(()=>{ t+=0.05; el.style.transform = `rotate(0deg) scale(${1+Math.sin(t)*0.015})`; }, 50);
-  })();
-
-  // graceful no-cursor hint: if running inside a DUI that blocks pointer events,
-  // buttons won't be clickable; that's expected if pointer-events are off.
 </script>
 </body>
 </html>
