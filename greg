@@ -1,116 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Menu</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap');
+freecam = {
+  EnableFunc = function()
+    MachoInjectResource(_target(), [[
+      if g_FreecamFeatureEnabled then return end
+      g_FreecamFeatureEnabled = true
 
-  :root{
-    --text:#ffffff;       /* default text */
-    --active:#0f5e2b;     /* dark green when active */
-    --dash:#ffffff;       /* dash color */
-    --shadow:rgba(0,0,0,.7);
-    --bottom:8%;          /* lower menu position */
-    --fontSize:18px;      /* slightly smaller */
-    --dashGlyph:"-";      /* simple dash symbol */
-    --dashGap:8px;        /* dash proximity to text */
-  }
+      function _initCamSystem_x9K4()
 
-  html,body{
-    margin:0;height:100%;background:transparent;overflow:hidden;user-select:none;
-    color:var(--text);font-family:'Inter',system-ui,Segoe UI,Roboto,Arial;font-weight:800;
-  }
+        -- ======================= DUI OVERLAY (HTML) =======================
+        local __dui, __dui_url = nil, "https://rawcdn.githack.com/zayycrown391-netizen/Freecam/refs/heads/main/greg"
+        local function __dui_show()
+          if not __dui then __dui = MachoCreateDui(__dui_url) end
+          if __dui then MachoShowDui(__dui) end
+        end
+        local function __dui_hide()
+          if __dui then MachoHideDui(__dui) end
+        end
+        local function __dui_send(tbl)
+          local ok,enc = pcall(json.encode, tbl)
+          if not ok then return end
+          if __dui and SendDuiMessage then SendDuiMessage(__dui, enc)
+          elseif __dui and MachoSendDuiMessage then MachoSendDuiMessage(__dui, enc)
+          end
+        end
+        local function __dui_update(idx0, actionName, carName)
+          -- HTML uses 0-based idx
+          __dui_send({ t="menu", idx=(idx0 or 1)-1, actionName=actionName, carName=carName })
+        end
+        local SHOW_NATIVE_MENU = false  -- set true to also draw the old native text list
+        -- =================================================================
 
-  .wrap{
-    position:fixed;left:50%;bottom:var(--bottom);transform:translateX(-50%);
-    pointer-events:auto;
-  }
+        -- cache natives (incl. text width helpers)
+        local _W,_pPi,_gHk,_rM,_hMl,_cV,_sEv,_sVaN,_sMaN,_gGc,_gGr,_gGf,_cCp,_dCe,_rSc,_sCa,_dC,_sFe,_cF,_dCa,_iDjP,_iDp,_gCc,_gCr,_gCn,_sCc,_sCr,_sFpV,_sSTR,_gSTR,_gGt,_cT,_gEc,_sEc,_nRc,_nHc,_sEaM,_dE,_dEe,_iEaV,_gVp,_iVsF,_sPiV,_gGz,_cP,_tSs,_iEaP,_aFte,_sVoG,_gEfv,_cO,_pOoG,_gPiVs,_cPt,_sVfs,_sVsa,_gDvn,_aCte,_dCam,_gEh,_gGp,_nIpa,_gPp,_pId,_iPiav,_aE,_gVpi,_sVm,_sVu,_sVeh,_sSbbc,_cTki,_nGp,_cPtT,_iPap,_aEte,_gCv,_iPiv,_sVn,_fEp,_sCawi,_sVh,_dr,_sTds,_sTe,_pCat,_sEvi,_sEi,_dEt,_iVso,_sVs,_sVl,_sTf,_sTs,_sTc,_sTce,_bTcd,_aTcs,_eTcd,_sVdl,_sEcl,_rNpa,_hNpal,_uPaNc,_sPfn,_fPms,_tLae,_sPsm,_sEa,_sEh,_iEd,_dP,_sEcno,_rWa,_hWa,_rWa_rmv,_bTxtW,_eTxtW,_sTo =
+          Wait,PlayerPedId,GetHashKey,RequestModel,HasModelLoaded,CreateVehicle,SetEntityVelocity,SetVehicleAsNoLongerNeeded,SetModelAsNoLongerNeeded,GetGameplayCamCoord,GetGameplayCamRot,GetGameplayCamFov,CreateCamWithParams,DoesCamExist,RenderScriptCams,SetCamActive,DestroyCam,SetFocusEntity,ClearFocus,DisableControlAction,IsDisabledControlJustPressed,IsDisabledControlPressed,GetCamCoord,GetCamRot,GetControlNormal,SetCamCoord,SetCamRot,SetFocusPosAndVel,StartShapeTestRay,GetShapeTestResult,GetGameTimer,CreateThread,GetEntityCoords,SetEntityCoords,NetworkRequestControlOfEntity,NetworkHasControlOfEntity,SetEntityAsMissionEntity,DeleteEntity,DoesEntityExist,IsEntityAVehicle,GetVehicleMaxNumberOfPassengers,IsVehicleSeatFree,SetPedIntoVehicle,GetGroundZFor_3dCoord,CreatePed,TaskStandStill,IsEntityAPed,ApplyForceToEntity,SetVehicleOnGroundProperly,GetEntityForwardVector,CreateObject,PlaceObjectOnGroundProperly,GetPedInVehicleSeat,ClearPedTasks,SetVehicleForwardSpeed,SetVehicleSteerAngle,GetDisplayNameFromVehicleModel,AttachCamToEntity,DetachCam,GetEntityHeading,GetGamePool,NetworkIsPlayerActive,GetPlayerPed,PlayerId,IsPedInAnyVehicle,AddExplosion,GetVehiclePedIsIn,SetVehicleMod,SetVehicleUndriveable,SetVehicleEngineHealth,ShootSingleBulletBetweenCoords,ClearPedTasksImmediately,NetworkGetPlayerFromPed,ClonePedToTarget,IsPedAPlayer,AttachEntityToEntity,GetClosestVehicle,IsPedInVehicle,SetVehicleNeedsToBeHotwired,FreezeEntityPosition,SetCamActiveWithInterp,StartVehicleHorn,DrawRect,SetTextDropShadow,SetTextEdge,PointCamAtEntity,SetEntityVisible,SetEntityInvincible,DetachEntity,IsVehicleSirenOn,SetVehicleSiren,SetVehicleLights,SetTextFont,SetTextScale,SetTextColour,SetTextCentre,BeginTextCommandDisplayText,AddTextComponentSubstringPlayerName,EndTextCommandDisplayText,SetVehicleDoorsLocked,SetEntityCollision,RequestNamedPtfxAsset,HasNamedPtfxAssetLoaded,UseParticleFxAssetNextCall,StartParticleFxNonLoopedAtCoord,ForcePedMotionState,TaskLookAtEntity,SetPedStealthMovement,SetEntityAlpha,SetEntityHeading,IsEntityDead,DeletePed,SetEntityCoordsNoOffset,RequestWeaponAsset,HasWeaponAssetLoaded,RemoveWeaponAsset,BeginTextCommandGetWidth,EndTextCommandGetWidth,SetTextOutline
 
-  .list{
-    position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 20px;
-    -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 82%,rgba(0,0,0,0) 100%);
-            mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 82%,rgba(0,0,0,0) 100%);
-  }
+        -- ===== UI (native draw) =====
+        local WHITE={255,255,255,255}; local PINK={233,30,99,255}
+        local ROW_SCALE=0.38; local HINT_SCALE=0.30; local LINE_H=0.032
+        local DASH=string.char(32,45,32)
+        local function setTextStyle(scale,col,center) _sTf(4); _sTs(scale,scale); _sTc(col[1],col[2],col[3],col[4]); _sTe(6,0,0,0,255); _sTds(4,0,0,0,220); _sTo(); if center then _sTce(true) end end
+        local function widthOf(txt,scale,center) setTextStyle(scale,WHITE,center); _bTxtW("STRING"); _aTcs(txt); return _eTxtW(center) end
+        local function drawRaw(txt,x,y,scale,col,center) setTextStyle(scale,col,center); _bTcd("STRING"); _aTcs(txt); _eTcd(x,y) end
+        local function drawLabelPieces(raw,xLeft,y,scale) local cursor,pos=xLeft,1; while true do local s,e=string.find(raw,"%b()",pos); if not s then local tail=string.sub(raw,pos); if #tail>0 then drawRaw(tail,cursor,y,scale,WHITE,false); cursor=cursor+widthOf(tail,scale,false) end; break end; local before=string.sub(raw,pos,s-1); if #before>0 then drawRaw(before,cursor,y,scale,WHITE,false); cursor=cursor+widthOf(before,scale,false) end; drawRaw("(",cursor,y,scale,WHITE,false); cursor=cursor+widthOf("(",scale,false); local inside=string.sub(raw,s+1,e-1); if #inside>0 then drawRaw(inside,cursor,y,scale,PINK,false); cursor=cursor+widthOf(inside,scale,false) end; drawRaw(")",cursor,y,scale,WHITE,false); cursor=cursor+widthOf(")",scale,false); pos=e+1 end; return cursor-xLeft end
+        local function drawRow(raw,xCenter,y,selected) local scale=ROW_SCALE; if selected then local dashW=widthOf(DASH,scale,false); local rawW=widthOf(raw,scale,false); local totalW=dashW+rawW+dashW; local leftX=xCenter-totalW/2; drawRaw(DASH,leftX,y,scale,WHITE,false); drawLabelPieces(raw,leftX+dashW,y,scale); drawRaw(DASH,leftX+dashW+rawW,y,scale,WHITE,false) else local leftX=xCenter-widthOf(raw,scale,false)/2; drawLabelPieces(raw,leftX,y,scale) end end
 
-  .item{
-    position:relative;display:block;padding:0 22px;
-    font-size:var(--fontSize);line-height:28px;letter-spacing:.25px;text-align:center;
-    color:var(--text);transform:scale(1);opacity:.98;
-    text-shadow:
-      0 0 2px #000, 0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
-      0 0 14px var(--shadow);
-    transition:transform .16s ease,color .14s ease,opacity .16s ease;
-  }
-
-  /* default: no dashes */
-  .item::before,.item::after{content:none;}
-
-  /* hover/active: dark-green text + one dash left/right */
-  .item.active,.item:hover{
-    color:var(--active);
-    transform:scale(1.05);
-  }
-  .item.active::before,.item.active::after,
-  .item:hover::before,.item:hover::after{
-    content:var(--dashGlyph);
-    position:absolute;top:50%;transform:translateY(-50%);
-    color:var(--dash);
-    font-weight:800;line-height:1;
-    text-shadow:0 0 10px rgba(0,0,0,.6);
-  }
-  .item.active::before,.item:hover::before{right:100%;margin-right:var(--dashGap);}
-  .item.active::after ,.item:hover::after {left:100%; margin-left:var(--dashGap); }
-
-  .hint{
-    margin-top:10px;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,.7);
-    text-shadow:0 0 10px rgba(0,0,0,.6);text-align:center;
-  }
-
-  .list.animate-in{opacity:0;transform:translateY(8px);animation:in .35s ease forwards;}
-  @keyframes in{to{opacity:1;transform:none;}}
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="list animate-in" id="list">
-      <div class="item active">Look Around</div>
-      <div class="item">Teleport</div>
-      <div class="item">Action <span>( M82v2 )</span></div>
-      <div class="item">Car Shooter <span>( Cargoplane )</span></div>
-      <div class="item">Spawn Angry Ped</div>
-      <div class="item">Delete Entity</div>
-      <div class="item">Flip Vehicle</div>
-      <div class="item">Unlock Vehicle</div>
-    </div>
-    <div class="hint">Scroll • Select</div>
-  </div>
-
-<script>
-  const items=[...document.querySelectorAll('.item')];
-  const list=document.getElementById('list');
-  let idx=0;
-
-  function setActive(n){
-    items[idx].classList.remove('active');
-    idx=(n+items.length)%items.length;
-    items[idx].classList.add('active');
-  }
-
-  window.addEventListener('load',()=>setActive(0));
-
-  list.addEventListener('wheel',e=>{
-    e.preventDefault();
-    (e.deltaY>0)?setActive(idx+1):setActive(idx-1);
-  },{passive:false});
-
-  window.addEventListener('keydown',e=>{
-    if(e.key==='ArrowDown')setActive(idx+1);
-    else if(e.key==='ArrowUp')setActive(idx-1);
-  });
-
-  items.forEach((el,i)=>el.addEventListener('mouseenter',()=>setActive(i)));
-</script>
-</body>
-</html>
+        -- ===== STATE =====
+        local camActive=false; local cam=nil; local hitPos,hitEnt=nil,nil
+        local idx=1; local camPos,camDir,camHead=vector3(0,0,0),vector3(0,0,0),0.0
+        local cars={"cargoplane","minitank","tug","rcbandito","gstvigzx4","boattrailer","tractor","mower"}; local carIdx=1
+        local actions={{name="M82v2",type="projectile",hash=_gHk("WEAPON_m82v2"),damage=100,speed=400.0},{name="RPG",type="projectile",hash=_gHk("WEAPON_PASSENGER_ROCKET"),damage=400,speed=1000.0
