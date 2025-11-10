@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Menu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap');
+
+  :root{
+    --fg:#ffffff;
+    --muted:rgba(255,255,255,.70);
+    --dash:#0f5e2b;                 /* dark green on active/hover */
+    --dash-muted:rgba(255,255,255,.35);
+    --shadow:rgba(0,0,0,.70);
+    --bottom:8.5%;                  /* lower it here */
+    --rail:88px;                    /* dash length default */
+    --rail-active:102px;            /* dash length when active */
+    --font:20px;                    /* base size */
+  }
+
+  html,body{
+    margin:0;height:100%;background:transparent;overflow:hidden;
+    user-select:none;color:var(--fg);
+    font-family:'Inter',system-ui,Segoe UI,Roboto,Arial;
+    font-weight:800;
+  }
+
+  /* centered column, lowered; no background panel */
+  .wrap{
+    position:fixed;left:50%;bottom:var(--bottom);
+    transform:translateX(-50%);
+    pointer-events:auto;
+  }
+
+  /* column layout + mask fade at the bottom (no visible color) */
+  .list{
+    position:relative;
+    display:flex; flex-direction:column; align-items:center;
+    gap:8px; padding:0 20px;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 82%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 82%, rgba(0,0,0,0) 100%);
+  }
+
+  .item{
+    display:block;
+    font-size:var(--font);
+    line-height:30px; letter-spacing:.25px;
+    text-align:center; opacity:.96; transform:scale(1);
+    text-shadow:
+      0 0 2px #000, 0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
+      0 0 14px var(--shadow);
+    transition: transform .16s ease, opacity .16s ease, filter .16s ease;
+    position:relative; padding:0 26px;
+  }
+  .item span{opacity:.9;}
+
+  /* side dashes: muted by default */
+  .item::before,
+  .item::after{
+    content:""; position:absolute; top:50%; width:var(--rail); height:0;
+    border-top:2px dashed var(--dash-muted);
+    transform:translateY(-50%);
+    transition: border-color .16s ease, width .18s ease;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.35));
+  }
+  .item::before{ right:100%; margin-right:12px; }
+  .item::after { left:100%;  margin-left:12px;  }
+
+  /* active/hover -> green rails + gentle scale */
+  .item.active,
+  .item:hover{ transform:scale(1.06); }
+
+  .item.active::before, .item.active::after,
+  .item:hover::before, .item:hover::after{
+    border-color:var(--dash);
+    width:var(--rail-active);
+  }
+
+  .hint{
+    margin-top:10px;font-size:12px;color:var(--muted);letter-spacing:1px;
+    text-shadow:0 0 10px rgba(0,0,0,.6);
+    text-align:center;
+  }
+
+  /* subtle entrance */
+  .list.animate-in{ opacity:0; transform:translateY(8px); animation:in .35s ease forwards; }
+  @keyframes in{ to{opacity:1; transform:none;} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="list animate-in" id="list">
+      <div class="item active">- Look-Around -</div>
+      <div class="item">Teleport</div>
+      <div class="item">Action <span>( M82v2 )</span></div>
+      <div class="item">Car Shooter <span>( Cargoplane )</span></div>
+      <div class="item">Spawn Angry Ped</div>
+      <div class="item">Delete Entity</div>
+      <div class="item">Flip Vehicle</div>
+      <div class="item">Unlock Vehicle</div>
+    </div>
+    <div class="hint">Scroll • Select</div>
+  </div>
+
+<script>
+  const items = [...document.querySelectorAll('.item')];
+  const list  = document.getElementById('list');
+  let idx = 0;
+
+  function setActive(newIdx){
+    items[idx].classList.remove('active');
+    idx = (newIdx + items.length) % items.length;
+    items[idx].classList.add('active');
+  }
+
+  window.addEventListener('load', ()=> setActive(0));
+
+  // scroll only affects the list (prevents global steal)
+  list.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    (e.deltaY > 0) ? setActive(idx + 1) : setActive(idx - 1);
+  }, {passive:false});
+
+  // arrow keys if DUI has focus
+  window.addEventListener('keydown', (e)=>{
+    if (e.key === 'ArrowDown') setActive(idx + 1);
+    else if (e.key === 'ArrowUp') setActive(idx - 1);
+  });
+
+  // hover also highlights for instant feedback
+  items.forEach((el, i)=> el.addEventListener('mouseenter', ()=> setActive(i)));
+</script>
+</body>
+</html>
