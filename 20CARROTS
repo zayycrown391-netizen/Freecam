@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Menu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap');
+
+  :root{
+    --text:#ffffff;       /* default item text */
+    --active:#0f5e2b;     /* dark green on active/hover */
+    --dash:#ffffff;       /* dash color */
+    --shadow:rgba(0,0,0,.7);
+    --bottom:8%;          /* lower / raise menu */
+    --fontSize:20px;      /* item size */
+    --dashGlyph:"—";      /* EXACTLY one dash glyph on each side */
+    --dashGap:12px;       /* space between dash and text */
+  }
+
+  html,body{
+    margin:0;height:100%;background:transparent;overflow:hidden;user-select:none;
+    color:var(--text);font-family:'Inter',system-ui,Segoe UI,Roboto,Arial;font-weight:800;
+  }
+
+  .wrap{
+    position:fixed;left:50%;bottom:var(--bottom);transform:translateX(-50%);
+    pointer-events:auto;
+  }
+
+  .list{
+    position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 20px;
+    -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 82%,rgba(0,0,0,0) 100%);
+            mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,1) 82%,rgba(0,0,0,0) 100%);
+  }
+
+  .item{
+    position:relative;display:block;padding:0 28px;
+    font-size:var(--fontSize);line-height:30px;letter-spacing:.25px;text-align:center;
+    color:var(--text);transform:scale(1);opacity:.98;
+    text-shadow:
+      0 0 2px #000, 0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
+      0 0 14px var(--shadow);
+    transition:transform .16s ease,color .14s ease,opacity .16s ease;
+  }
+
+  /* No dashes by default */
+  .item::before,.item::after{ content:none; }
+
+  /* ONLY hovered/active: green text + EXACTLY ONE dash on each side */
+  .item.active,.item:hover{
+    color:var(--active);
+    transform:scale(1.06);
+  }
+  .item.active::before,.item:hover::before,
+  .item.active::after ,.item:hover::after{
+    content:var(--dashGlyph);
+    position:absolute; top:50%; transform:translateY(-50%);
+    color:var(--dash);
+    text-shadow:0 0 10px rgba(0,0,0,.6);
+    font-weight:800;
+    line-height:1;
+  }
+  .item.active::before,.item:hover::before{ right:100%; margin-right:var(--dashGap); }
+  .item.active::after ,.item:hover::after { left:100%;  margin-left:var(--dashGap);  }
+
+  .hint{
+    margin-top:10px;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,.7);
+    text-shadow:0 0 10px rgba(0,0,0,.6);text-align:center;
+  }
+
+  .list.animate-in{opacity:0;transform:translateY(8px);animation:in .35s ease forwards;}
+  @keyframes in{to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="list animate-in" id="list">
+      <!-- Items are injected by Lua via __APPLY_STATE -->
+    </div>
+    <div class="hint">Scroll • Select</div>
+  </div>
+
+<script>
+  const list = document.getElementById('list');
+  let items = [];
+  let idx = 0;
+  let interactive = false;   // Lua can turn this on if DUI→Lua messaging is wired
+
+  function rebuild(itemsArr, activeIndex){
+    list.innerHTML = '';
+    items = itemsArr.slice();
+    idx = Math.max(0, Math.min(activeIndex|0, items.length-1));
+    for (let i=0;i<items.length;i++){
+      const el = document.createElement('div');
+      el.className = 'item' + (i===idx?' active':'');
+      el.innerHTML = items[i];
+      el.addEventListener('mouseenter', ()=>setActive(i));
+      list.appendChild(el);
+    }
+  }
+  function setActive(n){
+    if (!items.length) return;
+    const prev = list.children[idx]; if (prev) prev.classList.remove('active');
+    idx = (n + items.length) % items.length;
+    const cur = list.children[idx]; if (cur) cur.classList.add('active');
+    if (interactive && window.__emitNav) window.__emitNav(idx); // tell Lua (optional)
+  }
+
+  // ============== FREECAM API (called by Lua via MachoExecuteDuiScript) ==============
+  // state = { itemsHtml: [ "<div>…</div>", ... ] OR plain strings, active: Number, interactive: Bool }
+  window.__APPLY_STATE = (state)=>{
+    try{
+      if (state && Array.isArray(state.itemsHtml)) {
+        // Accept either raw strings ("Action ( M82v2 )") or pre-wrapped spans
+        rebuild(state.itemsHtml, state.active|0);
+      }
+      if (typeof state.interactive === 'boolean') interactive = state.interactive;
+    }catch(e){}
+  };
+
+  // Optional → if Lua wires a global `__SET_NAV_HANDLER(fn)` we'll use it
+  window.__emitNav = null; // set by Lua (optional)
+
+  // Nice UX: local wheel/arrow control (works in INTERACTIVE mode)
+  list.addEventListener('wheel', e=>{
+    e.preventDefault();
+    setActive(idx + (e.deltaY>0 ? 1 : -1));
+  }, {passive:false});
+  window.addEventListener('keydown', e=>{
+    if (e.key==='ArrowDown') setActive(idx+1);
+    else if (e.key==='ArrowUp') setActive(idx-1);
+  });
+  // ===================================================================================
+</script>
+</body>
+</html>
